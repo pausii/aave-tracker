@@ -1,14 +1,28 @@
 <script lang="ts">
   // A dashboard that silently shows old numbers is worse than one that admits it.
-  import { hoursSince, STALE_AFTER_HOURS } from '../lib/calc';
+  import { STALE_AFTER_HOURS } from '../lib/calc';
 
   let { updatedAt }: { updatedAt: string } = $props();
 
-  const hours = $derived(hoursSince(updatedAt));
+  // Age has to be recomputed against the clock, not just when the data changes.
+  // An installed app can sit open for days on one fetch, and a banner derived
+  // only from `updatedAt` would never appear during exactly the stretch it is
+  // meant to cover.
+  let now = $state(Date.now());
+
+  $effect(() => {
+    const tick = () => (now = Date.now());
+    const id = setInterval(tick, 5 * 60_000);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', tick);
+    };
+  });
+
+  const hours = $derived((now - Date.parse(updatedAt)) / 3_600_000);
   const stale = $derived(hours > STALE_AFTER_HOURS);
-  const age = $derived(
-    hours < 48 ? `${Math.round(hours)} hours` : `${Math.floor(hours / 24)} days`,
-  );
+  const age = $derived(hours < 48 ? `${Math.round(hours)} hours` : `${Math.floor(hours / 24)} days`);
 </script>
 
 {#if stale}

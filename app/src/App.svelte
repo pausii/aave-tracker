@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import type { Portfolio } from './lib/types';
   import { seriesFor, statsFor, rateSeries } from './lib/calc';
-  import { unlockWithPassphrase, restoreSession, logout } from './lib/session';
+  import { unlockWithPassphrase, restoreSession, refreshPortfolio, logout } from './lib/session';
   import { theme } from './lib/theme.svelte';
   import { live } from './lib/live.svelte';
   import { range } from './lib/range.svelte';
@@ -72,6 +72,25 @@
       busy = false;
     }
   }
+
+  // An installed app is normally resumed rather than reloaded, so without this
+  // it would keep showing whatever it fetched days ago -- and the staleness
+  // banner, computed from that same stale payload, would not warn about it.
+  $effect(() => {
+    if (view !== 'ready') return;
+    const onVisible = async () => {
+      if (document.hidden) return;
+      const fresh = await refreshPortfolio();
+      if (!fresh) return;              // a failed refresh keeps what is on screen
+      portfolio = fresh;
+      // Hold the current selection unless that wallet has gone.
+      if (selected !== 'all' && !fresh.wallets.some((w) => w.address === selected)) {
+        selected = fresh.wallets.length === 1 ? fresh.wallets[0].address : 'all';
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  });
 
   // Keep the live poller pointed at whichever wallets are on screen.
   $effect(() => {

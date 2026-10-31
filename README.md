@@ -184,6 +184,15 @@ Fonts are cached as they are requested rather than precached. The build ships
 every unicode subset, and precaching them would pull roughly 400 KB that a given
 browser will never use.
 
+An installed app is usually resumed rather than reloaded, so the data is fetched
+again whenever it returns to the foreground. Without that it would keep showing
+whatever it read days ago, and the staleness banner — derived from that same old
+payload — would stay silent about it.
+
+A new version of the code arrives on the second launch after a deploy: the first
+one installs it in the background while still running the old build. The data
+does not wait for that, since it is fetched on every launch.
+
 ### Stale data
 
 If the daily update has not run for more than 36 hours, a banner says so and

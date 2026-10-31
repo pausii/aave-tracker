@@ -5,7 +5,12 @@ import { saveSession, loadSession, clearSession } from './storage';
 const DATA_URL = 'portfolio.enc.json';
 
 async function fetchEnvelope(): Promise<Envelope> {
-  const res = await fetch(DATA_URL, { cache: 'no-store' });
+  let res: Response;
+  try {
+    res = await fetch(DATA_URL, { cache: 'no-store' });
+  } catch {
+    throw new Error('Could not reach the data file.');
+  }
   if (!res.ok) throw new Error(`Could not load data (${res.status}).`);
   return (await res.json()) as Envelope;
 }
@@ -26,10 +31,35 @@ export async function unlockWithPassphrase(passphrase: string): Promise<Portfoli
 export async function restoreSession(): Promise<Portfolio | null> {
   const key = await loadSession().catch(() => null);
   if (!key) return null;
+
+  let envelope: Envelope;
+  try {
+    envelope = await fetchEnvelope();
+  } catch {
+    // Being unable to reach the file says nothing about the key. Throwing the
+    // session away here would force the passphrase to be typed again after a
+    // moment offline, which is both annoying and pointless.
+    return null;
+  }
+
+  try {
+    return await decryptWithKey(envelope, key);
+  } catch {
+    // The key genuinely no longer opens this file, so it is of no further use.
+    await clearSession();
+    return null;
+  }
+}
+
+// Re-read the data with the stored key, for an app that is already open.
+// Never clears the session: this runs in the background, where a failure is
+// far more likely to be a flaky network than a bad key.
+export async function refreshPortfolio(): Promise<Portfolio | null> {
+  const key = await loadSession().catch(() => null);
+  if (!key) return null;
   try {
     return await decryptWithKey(await fetchEnvelope(), key);
   } catch {
-    await clearSession();
     return null;
   }
 }

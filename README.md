@@ -169,6 +169,21 @@ supplied" whenever the window covers everything anyway.
 Days when money moved are marked on the balance chart with the amount, so the
 step in the line is explained rather than left as an unlabelled cliff.
 
+### Installing it
+
+The site is a progressive web app, so a phone can add it to the home screen and
+open it without browser chrome. The shell is cached, which makes launching it
+near-instant; opening it offline shows the last data it saw, with the staleness
+banner doing its usual job.
+
+The data file is fetched **network-first**: whenever the network answers, its
+copy wins, and the cache is only a fallback. Serving yesterday's figures from
+cache without saying so is the one failure this dashboard must not have.
+
+Fonts are cached as they are requested rather than precached. The build ships
+every unicode subset, and precaching them would pull roughly 400 KB that a given
+browser will never use.
+
 ### Stale data
 
 If the daily update has not run for more than 36 hours, a banner says so and

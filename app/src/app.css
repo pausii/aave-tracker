@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/* Fonts are bundled with the app rather than fetched from Google Fonts, so
+   visits to this private dashboard are not reported to a third party. */
+@import "@fontsource-variable/newsreader/opsz.css";
+@import "@fontsource-variable/ibm-plex-sans/wght.css";
+
+/* The theme is driven by a .dark class on <html> rather than prefers-color-scheme
+   alone, so the light/dark button can override the system preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Palette ───────────────────────────────────────────────────────────────
+   A precision instrument rather than a SaaS dashboard: navy ink on ledger paper.
+   Colour carries state only; it is never decoration.
+     patina = interest from a day that has closed
+     brass  = the day still in progress
+     rust   = balance fell with nothing to explain it
+*/
+:root {
+  --c-canvas:   #EEF2F7;  /* paper, cool and faintly blue, not cream */
+  --c-surface:  #FFFFFF;
+  --c-sunken:   #E4EAF2;
+  --c-hairline: #D2DBE7;
+  --c-ink:      #0E1C2E;
+  --c-muted:    #566880;
+  --c-faint:    #8396AE;
+  --c-patina:   #0C7A68;
+  --c-brass:    #96681A;
+  --c-rust:     #AE4334;
+  --c-dial:     #C3CEDC;
+}
+
+.dark {
+  --c-canvas:   #0A1422;
+  --c-surface:  #10203A;
+  --c-sunken:   #0D1A2D;
+  --c-hairline: #1E3254;
+  --c-ink:      #E7EEF8;
+  --c-muted:    #93A6C0;
+  --c-faint:    #61748E;
+  --c-patina:   #46C0A6;
+  --c-brass:    #DDA94A;
+  --c-rust:     #E0786A;
+  --c-dial:     #263B59;
+}
+
+@theme inline {
+  --color-canvas:   var(--c-canvas);
+  --color-surface:  var(--c-surface);
+  --color-sunken:   var(--c-sunken);
+  --color-hairline: var(--c-hairline);
+  --color-ink:      var(--c-ink);
+  --color-muted:    var(--c-muted);
+  --color-faint:    var(--c-faint);
+  --color-patina:   var(--c-patina);
+  --color-brass:    var(--c-brass);
+  --color-rust:     var(--c-rust);
+  --color-dial:     var(--c-dial);
+
+  --font-sans: "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Newsreader Variable", ui-serif, Georgia, serif;
+}
+
+html {
+  background-color: var(--c-canvas);
+  color-scheme: light;
+}
+html.dark { color-scheme: dark; }
+
+body {
+  font-family: var(--font-sans);
+  /* Figures must line up in tables and readouts. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Large figures: a high-contrast serif, like numerals engraved on a certificate. */
+.readout {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--c-patina);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

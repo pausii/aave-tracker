@@ -1,0 +1,61 @@
+name: Daily Aave update
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # 01:00 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npm --prefix app install --no-audit --no-fund
+
+      - name: Build app
+        run: npm --prefix app run build
+
+      - name: Checkout data repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.DATA_REPO }}          # e.g. yourname/aave-tracker-data
+          token: ${{ secrets.DATA_REPO_TOKEN }}
+          path: data-repo
+
+      - name: Replace site files in data repo
+        run: |
+          # Clear everything the build owns, keeping only the encrypted data and
+          # git metadata. Naming files one by one leaves stale ones behind once
+          # the build output changes -- including font licences that would then
+          # sit next to fonts they no longer describe.
+          find data-repo -mindepth 1 -maxdepth 1 \
+            ! -name .git ! -name portfolio.enc.json -exec rm -rf {} +
+          cp -r app/dist/. data-repo/
+
+      - name: Update encrypted portfolio
+        env:
+          WALLETS: ${{ secrets.WALLETS }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+          OUT_DIR: ${{ github.workspace }}/data-repo
+        run: node src/update.js
+
+      - name: Commit and push
+        working-directory: data-repo
+        run: |
+          git config user.name "aave-tracker-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add -A
+          git commit -m "data: $(date -u +%F)" || echo "nothing changed"
+          git push

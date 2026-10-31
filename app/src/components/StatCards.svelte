@@ -44,7 +44,7 @@
           ? 'Stop reading the chain. The page will show the last daily snapshot.'
           : 'Read the current balance from a public Ethereum node every 15 seconds. That node will see which wallet is asked about.'}
         class="flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors
-               {live.enabled ? 'border-patina/40 text-patina' : 'border-hairline text-faint hover:text-muted'}"
+               {live.enabled ? 'border-patina/40 text-patina' : 'border-hairline text-muted hover:text-ink'}"
       >
         <span class="relative flex h-1.5 w-1.5">
           {#if showingLive}
@@ -92,7 +92,7 @@
     <div class="px-5 py-4">
       <p class="text-sm text-muted">Rate that implies</p>
       <p class="readout mt-1 text-2xl">{fmt(stats.apy7)}<span class="ml-0.5 font-sans text-base text-faint">%</span></p>
-      <p class="mt-1 text-xs text-faint">{stats.days} full {stats.days === 1 ? 'day' : 'days'} recorded</p>
+      <p class="mt-1 text-xs text-faint">Annualised from the last {Math.min(7, stats.days)} full days</p>
     </div>
   </div>
 </section>

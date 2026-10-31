@@ -5,7 +5,7 @@
   import type { Point } from '../lib/calc';
   import { toUnits } from '../lib/calc';
   import { theme } from '../lib/theme.svelte';
-  import { tokens, axisCommon, tooltipCommon, splitLine, type Tokens } from '../lib/chartTheme';
+  import { tokens, axisCommon, tooltipCommon, splitLine, FONT, type Tokens } from '../lib/chartTheme';
 
   let { points }: { points: Point[] } = $props();
 
@@ -41,6 +41,26 @@
         name: 'Balance', type: 'line', smooth: 0.25, symbol: 'none',
         data: points.map((p) => toUnits(p.balance)),
         lineStyle: { width: 2, color: t.patina },
+        markLine: {
+          silent: true,
+          symbol: 'none',
+          lineStyle: { color: t.brass, type: [4, 4], width: 1 },
+          label: {
+            color: t.brass, fontFamily: FONT, fontSize: 11,
+            formatter: (m: { name: string }) => m.name,
+            // ECharts rotates labels on vertical mark lines by default, which
+            // left them standing on end against the axis.
+            rotate: 0,
+            position: 'insideEndTop',
+            distance: 4,
+          },
+          data: points
+            .filter((p) => p.netFlow !== 0n)
+            .map((p) => ({
+              xAxis: p.date,
+              name: `${p.netFlow > 0n ? '+' : '−'}${Math.abs(toUnits(p.netFlow)).toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+            })),
+        },
       }],
     };
   }

@@ -5,11 +5,13 @@
   import { unlockWithPassphrase, restoreSession, logout } from './lib/session';
   import { theme } from './lib/theme.svelte';
   import { live } from './lib/live.svelte';
+  import { range } from './lib/range.svelte';
   import Login from './components/Login.svelte';
   import Header from './components/Header.svelte';
   import StatCards from './components/StatCards.svelte';
   import StaleBanner from './components/StaleBanner.svelte';
   import RateChart from './components/RateChart.svelte';
+  import RangePicker from './components/RangePicker.svelte';
   import Charts from './components/Charts.svelte';
   import HistoryTable from './components/HistoryTable.svelte';
 
@@ -25,7 +27,8 @@
   const wallets = $derived(portfolio?.wallets ?? []);
   const points = $derived(portfolio ? seriesFor(portfolio, selected) : []);
   const stats = $derived(statsFor(points));
-  const rates = $derived(rateSeries(points));
+  const rates = $derived(range.clip(rateSeries(points)));
+  const chartPoints = $derived(range.clip(points));
   const snapshotBalance = $derived(points.length ? points[points.length - 1].balance : 0n);
   const watched = $derived(
     selected === 'all' ? wallets.map((w) => w.address) : [selected],
@@ -40,6 +43,7 @@
   onMount(async () => {
     theme.init();
     live.init();
+    range.init();
     try {
       const p = await restoreSession();
       if (p) {
@@ -95,7 +99,13 @@
     <main class="mx-auto max-w-6xl space-y-5 px-4 py-7">
       <StaleBanner updatedAt={portfolio.updatedAt} />
       <StatCards {stats} snapshotBalanceRaw={snapshotBalance} updatedAt={portfolio.updatedAt} />
-      <Charts {points} />
+
+      <div class="flex items-center justify-between gap-3 pt-1">
+        <p class="text-sm text-muted">Charts {range.labelFor(chartPoints.length, points.length)}</p>
+        <RangePicker available={points.length} />
+      </div>
+
+      <Charts points={chartPoints} />
       <RateChart {rates} />
       <HistoryTable {points} />
       <footer class="pt-1 text-center text-xs text-faint">

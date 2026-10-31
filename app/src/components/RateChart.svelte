@@ -53,7 +53,7 @@
           symbol: 'none',
           data: [{ yAxis: average }],
           lineStyle: { color: t.muted, type: [4, 4], width: 1 },
-          label: { formatter: `avg ${average.toFixed(2)}%`, color: t.faint, fontSize: 11, position: 'insideEndTop' },
+          label: { formatter: 'avg', color: t.faint, fontSize: 11, position: 'insideStartTop' },
         },
       }],
     };
@@ -84,8 +84,8 @@
     <h2 class="font-display text-base font-medium">Rate earned</h2>
     {#if spread}
       <span class="text-xs text-faint">
-        Ranged {spread.lo.toFixed(2)}% to {spread.hi.toFixed(2)}% annualised over {rates.length}
-        full {rates.length === 1 ? 'day' : 'days'}
+        Averaged {average.toFixed(2)}%, ranging {spread.lo.toFixed(2)}% to {spread.hi.toFixed(2)}%
+        across {rates.length} full {rates.length === 1 ? 'day' : 'days'}
       </span>
     {/if}
   </div>

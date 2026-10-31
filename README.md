@@ -90,6 +90,9 @@ dashboard.
   paint, so the page never flashes the wrong colours.
 - `prefers-reduced-motion` is respected: the cipher and reveal animations are
   skipped.
+- **On narrow screens the daily history becomes a list rather than a table.**
+  Four columns do not fit on a phone, and pushing "Earned" off the edge hid the
+  one number the page exists to show.
 
 ### Live balance
 
@@ -111,6 +114,22 @@ principal that was earning is unknown — we do not know what time the transfer
 landed — so midday is assumed and those points are marked as estimates. The day
 in progress is left out entirely, since annualising a part-day would read as a
 collapse in the rate.
+
+### Time range
+
+A picker above the charts limits them to the last 7, 30 or 90 days, or all of
+history; the choice is remembered. The stat cards keep their own fixed windows,
+because "earned today" and "last 7 days" answer different questions than the
+charts do.
+
+This matters more than it looks: a deposit stays in the history forever, so
+without a window the balance chart is permanently dominated by one step and the
+daily slope never becomes visible. Options wider than the data on hand are
+hidden rather than shown as dead controls, and the caption says "since you
+supplied" whenever the window covers everything anyway.
+
+Days when money moved are marked on the balance chart with the amount, so the
+step in the line is explained rather than left as an unlabelled cliff.
 
 ### Stale data
 

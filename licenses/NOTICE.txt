@@ -1,0 +1,27 @@
+THIRD-PARTY NOTICES
+===================
+
+This site is licensed under the ISC License, copyright 2026 Ahmad Pausi.
+
+It also redistributes the font files listed below. Those fonts are NOT covered
+by the ISC License. They are licensed under the SIL Open Font License, Version
+1.1, and the full text of that licence, together with each font's copyright
+notice, is included alongside this file.
+
+  IBM Plex Sans
+    Copyright 2019 IBM Corp.
+    SIL Open Font License 1.1 — see IBM-Plex-Sans-OFL.txt
+    https://github.com/IBM/plex
+
+  Newsreader
+    Copyright 2020 The Newsreader Project Authors
+    SIL Open Font License 1.1 — see Newsreader-OFL.txt
+    https://github.com/productiontype/Newsreader
+
+Both fonts are served from this site as .woff2 files under /assets/.
+
+The SIL Open Font License permits this redistribution, including as part of a
+larger work, provided the licence and copyright notices travel with the fonts
+and the fonts are not sold on their own. Neither font has been modified; the
+.woff2 files are the unmodified subsets published by the Fontsource project
+(https://fontsource.org).

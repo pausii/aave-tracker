@@ -66,10 +66,14 @@ jobs:
       - name: Publish
         working-directory: site
         run: |
-          # A bot identity, so these daily commits stay off the owner's
-          # contribution graph.
-          git config user.name "aave-tracker-bot"
-          git config user.email "bot@users.noreply.github.com"
+          # GitHub's own Actions identity. A made-up noreply address such as
+          # bot@users.noreply.github.com is NOT anonymous: GitHub reads the
+          # legacy <name>@users.noreply.github.com form as a username, and
+          # github.com/bot is a real person's account, so these commits were
+          # being credited to a stranger. This address belongs to the Actions
+          # bot itself, and keeps the daily commits off the owner's graph.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "data: $(date -u +%F)" || echo "nothing changed"
           git push

@@ -1,11 +1,24 @@
 # Aave V3 USDT Tracker
 
 Tracks the aUSDT balance and daily interest of one or more wallets supplying
-USDT to Aave V3 on Ethereum. The data is encrypted (AES-256-GCM, key derived
-from a passphrase with PBKDF2) and served as a static GitHub Pages site from a
-separate data repository.
+USDT to Aave V3 on Ethereum. A GitHub Actions cron reads the chain once a day
+and writes an encrypted file (AES-256-GCM, key derived from a passphrase with
+PBKDF2) to the `gh-pages` branch, where a static dashboard decrypts it in your
+browser.
 
-Read-only. No wallet connection, no private keys anywhere in the codebase.
+Read-only. No wallet connection, no private keys anywhere in the codebase, and
+no server to run.
+
+![The dashboard, showing balance, daily interest and the rate earned](docs/dashboard-light.png)
+
+<table>
+<tr>
+<td width="50%"><img src="docs/login.png" alt="The login screen, where the balance is shown as encrypted glyphs until a passphrase unlocks it"></td>
+<td width="50%"><img src="docs/dashboard-dark.png" alt="The same dashboard in dark mode"></td>
+</tr>
+</table>
+
+Wallet addresses in these screenshots are placeholders. The figures are real.
 
 ## How it works
 

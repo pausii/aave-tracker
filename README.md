@@ -56,13 +56,29 @@ Then open <http://127.0.0.1:8080>.
 
 ## Setting up production
 
-1. Create a data repository, `aave-tracker-data`, and enable GitHub Pages on it
-   (branch `main`, root).
-2. Create a fine-grained PAT with `Contents: Read and write` on that repository.
-3. In this repository, set:
-   - Variables: `DATA_REPO` → `yourname/aave-tracker-data`
-   - Secrets: `WALLETS`, `RPC_URL`, `PASSPHRASE`, `DATA_REPO_TOKEN`
+One repository, two branches. `main` holds the source; `gh-pages` holds the
+built dashboard and the encrypted data, and GitHub Pages serves it. Because
+both live in the same repository, the workflow pushes with the built-in
+`GITHUB_TOKEN` and no personal access token is needed.
+
+`gh-pages` is also the datastore: each run reads the previous
+`portfolio.enc.json` from it and writes the new one back, replacing everything
+else with the fresh build.
+
+1. Create the repository on GitHub and push both branches:
+
+   ```bash
+   git remote add origin git@github.com:YOURNAME/aave-tracker.git
+   git push -u origin main
+   git push -u origin gh-pages
+   ```
+
+2. In **Settings → Pages**, set the source to branch `gh-pages`, folder `/ (root)`.
+3. In **Settings → Secrets and variables → Actions**, add the secrets
+   `WALLETS`, `RPC_URL` and `PASSPHRASE`.
 4. Run the workflow manually (`workflow_dispatch`) to test it.
+
+The site then appears at `https://YOURNAME.github.io/aave-tracker/`.
 
 Example `WALLETS` (around five wallets is the practical ceiling):
 
@@ -70,6 +86,15 @@ Example `WALLETS` (around five wallets is the practical ceiling):
 [{"address":"0xYourWalletAddress","label":"Main"},
  {"address":"0xAnotherWalletAddress","label":"Wallet 2"}]
 ```
+
+### If the repository is public
+
+`portfolio.enc.json` is served from a public branch, so anyone can download it.
+Its contents, including the wallet addresses and the whole balance history, are
+AES-256-GCM encrypted behind a PBKDF2 key at 310,000 iterations. That holds only
+as well as the passphrase does: an attacker with the file can guess offline,
+without rate limits, for as long as they like. **Use a long random passphrase.**
+A short or memorable one belongs in a private repository instead.
 
 ## Interface
 

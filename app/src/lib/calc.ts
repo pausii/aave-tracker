@@ -86,3 +86,41 @@ export function statsFor(points: Point[]): Stats {
     lastDate: last.date,
   };
 }
+
+export interface RatePoint {
+  date: string;
+  apr: number;
+  /** Funds moved that day, so the rate is an estimate. */
+  approximate: boolean;
+}
+
+// Annualised rate actually earned each day, derived from the balances rather
+// than from any rate Aave advertises.
+//
+// The denominator is the principal that was actually earning. On a day with no
+// deposits that is simply yesterday's closing balance. When funds moved we do
+// not know what time of day they arrived, so we assume midday and credit half
+// the flow; those days are flagged `approximate` rather than quietly presented
+// as exact. The running day is skipped entirely — annualising a part-day would
+// read as a collapse in the rate.
+export function rateSeries(points: Point[]): RatePoint[] {
+  const out: RatePoint[] = [];
+  points.forEach((p, i) => {
+    if (p.partial) return;
+    const previous = i > 0 ? toUnits(points[i - 1].balance) : 0;
+    const flow = toUnits(p.netFlow);
+    const principal = previous + flow / 2;
+    if (principal <= 0) return;
+    out.push({
+      date: p.date,
+      apr: (toUnits(p.interest) / principal) * 365 * 100,
+      approximate: flow !== 0,
+    });
+  });
+  return out;
+}
+
+export const hoursSince = (iso: string): number => (Date.now() - Date.parse(iso)) / 3_600_000;
+
+// The cron runs once a day, so anything past ~36h means a run was missed.
+export const STALE_AFTER_HOURS = 36;

@@ -1,12 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Portfolio } from './lib/types';
-  import { seriesFor, statsFor } from './lib/calc';
+  import { seriesFor, statsFor, rateSeries } from './lib/calc';
   import { unlockWithPassphrase, restoreSession, logout } from './lib/session';
   import { theme } from './lib/theme.svelte';
+  import { live } from './lib/live.svelte';
   import Login from './components/Login.svelte';
   import Header from './components/Header.svelte';
   import StatCards from './components/StatCards.svelte';
+  import StaleBanner from './components/StaleBanner.svelte';
+  import RateChart from './components/RateChart.svelte';
   import Charts from './components/Charts.svelte';
   import HistoryTable from './components/HistoryTable.svelte';
 
@@ -22,6 +25,11 @@
   const wallets = $derived(portfolio?.wallets ?? []);
   const points = $derived(portfolio ? seriesFor(portfolio, selected) : []);
   const stats = $derived(statsFor(points));
+  const rates = $derived(rateSeries(points));
+  const snapshotBalance = $derived(points.length ? points[points.length - 1].balance : 0n);
+  const watched = $derived(
+    selected === 'all' ? wallets.map((w) => w.address) : [selected],
+  );
 
   function load(p: Portfolio) {
     portfolio = p;
@@ -31,6 +39,7 @@
 
   onMount(async () => {
     theme.init();
+    live.init();
     try {
       const p = await restoreSession();
       if (p) {
@@ -60,7 +69,14 @@
     }
   }
 
+  // Keep the live poller pointed at whichever wallets are on screen.
+  $effect(() => {
+    if (view === 'ready' && watched.length > 0) live.watch(watched);
+    else live.stop();
+  });
+
   async function doLogout() {
+    live.stop();
     await logout();
     portfolio = null;
     revealed = null;
@@ -77,8 +93,10 @@
   <div class="min-h-screen">
     <Header {wallets} bind:selected updatedAt={portfolio.updatedAt} onLogout={doLogout} />
     <main class="mx-auto max-w-6xl space-y-5 px-4 py-7">
-      <StatCards {stats} />
+      <StaleBanner updatedAt={portfolio.updatedAt} />
+      <StatCards {stats} snapshotBalanceRaw={snapshotBalance} updatedAt={portfolio.updatedAt} />
       <Charts {points} />
+      <RateChart {rates} />
       <HistoryTable {points} />
       <footer class="pt-1 text-center text-xs text-faint">
         Interest is derived from on-chain balances, not from Aave's displayed rate.

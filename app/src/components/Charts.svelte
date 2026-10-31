@@ -5,6 +5,7 @@
   import type { Point } from '../lib/calc';
   import { toUnits } from '../lib/calc';
   import { theme } from '../lib/theme.svelte';
+  import { tokens, axisCommon, tooltipCommon, splitLine, type Tokens } from '../lib/chartTheme';
 
   let { points }: { points: Point[] } = $props();
 
@@ -13,54 +14,28 @@
   let balanceChart: EChartsType | undefined;
   let interestChart: EChartsType | undefined;
 
-  // Chart colours come from the same CSS tokens as the rest of the page, so
-  // light and dark can never drift apart.
-  function tokens() {
-    const s = getComputedStyle(document.documentElement);
-    const v = (n: string) => s.getPropertyValue(n).trim();
-    return {
-      ink: v('--c-ink'), muted: v('--c-muted'), faint: v('--c-faint'),
-      hairline: v('--c-hairline'), surface: v('--c-surface'),
-      patina: v('--c-patina'), brass: v('--c-brass'), dial: v('--c-dial'),
-    };
-  }
+  function usdt(v: number) { return `${v.toFixed(4)} USDT`; }
 
-  const FONT = '"IBM Plex Sans Variable", system-ui, sans-serif';
-  const usdt = (v: number) => `${v.toFixed(4)} USDT`;
-
-  function axisCommon(t: ReturnType<typeof tokens>) {
-    return {
-      axisLabel: { color: t.faint, fontFamily: FONT, fontSize: 11 },
-      axisLine: { lineStyle: { color: t.hairline } },
-      axisTick: { show: false },
-    };
-  }
-
-  function tooltipCommon(t: ReturnType<typeof tokens>) {
-    return {
-      trigger: 'axis' as const,
-      backgroundColor: t.surface,
-      borderColor: t.hairline,
-      textStyle: { color: t.ink, fontFamily: FONT, fontSize: 12 },
-      extraCssText: 'box-shadow:none;border-radius:8px;',
-    };
-  }
-
-  function balanceOption(t: ReturnType<typeof tokens>) {
+  function balanceOption(t: Tokens) {
     // Axis bounds follow the data. Left alone, ECharts anchors at 0 and the
     // daily rise (about 0.16 on 1,400) flattens into a straight line.
     const values = points.map((p) => toUnits(p.balance));
     const lo = Math.min(...values), hi = Math.max(...values);
-    const pad = Math.max((hi - lo) * 0.05, 0.02);
+    const span = (hi - lo) || 1;
+    // Round outward to a round step, otherwise the pinned bounds produce axis
+    // labels like "1,468.8751".
+    const step = 10 ** Math.floor(Math.log10(span)) / 2;
+    const min = Math.max(0, Math.floor((lo - span * 0.05) / step) * step);
+    const max = Math.ceil((hi + span * 0.05) / step) * step;
     return {
       animation: false,
       grid: { left: 8, right: 12, top: 16, bottom: 8, containLabel: true },
       tooltip: { ...tooltipCommon(t), valueFormatter: (v: number) => usdt(Number(v)) },
       xAxis: { type: 'category', boundaryGap: false, data: points.map((p) => p.date), ...axisCommon(t) },
       yAxis: {
-        type: 'value', min: +Math.max(0, lo - pad).toFixed(4), max: +(hi + pad).toFixed(4), ...axisCommon(t),
+        type: 'value', min, max, ...axisCommon(t),
         axisLine: { show: false },
-        splitLine: { lineStyle: { color: t.hairline, type: [3, 4] } },
+        splitLine: splitLine(t),
       },
       series: [{
         name: 'Balance', type: 'line', smooth: 0.25, symbol: 'none',
@@ -70,7 +45,7 @@
     };
   }
 
-  function interestOption(t: ReturnType<typeof tokens>) {
+  function interestOption(t: Tokens) {
     let running = 0;
     const cumulative = points.map((p) => (running += toUnits(p.interest)));
     return {
@@ -79,7 +54,7 @@
       tooltip: { ...tooltipCommon(t), valueFormatter: (v: number) => usdt(Number(v)) },
       xAxis: { type: 'category', data: points.map((p) => p.date), ...axisCommon(t) },
       yAxis: [
-        { type: 'value', ...axisCommon(t), axisLine: { show: false }, splitLine: { lineStyle: { color: t.hairline, type: [3, 4] } } },
+        { type: 'value', ...axisCommon(t), axisLine: { show: false }, splitLine: splitLine(t) },
         { type: 'value', ...axisCommon(t), axisLine: { show: false }, splitLine: { show: false } },
       ],
       series: [

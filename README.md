@@ -91,6 +91,33 @@ dashboard.
 - `prefers-reduced-motion` is respected: the cipher and reveal animations are
   skipped.
 
+### Live balance
+
+The stored data is at most a day old, so the dashboard can also read the current
+balance straight from a public Ethereum node and refresh it every 15 seconds.
+`balanceOf` is a free call needing no API key, and the updater's key never
+reaches the browser.
+
+It is **off by default**, because it is the only part of the page that talks to
+anything beyond its own origin, and the node it asks learns which wallet is
+being queried. Turn it on with the Live switch on the balance card; the choice
+is remembered. Polling pauses while the tab is in the background.
+
+### Rate earned
+
+A third chart annualises what each day actually paid, derived from the balances
+rather than from any rate Aave advertises. On days when money moved, the
+principal that was earning is unknown — we do not know what time the transfer
+landed — so midday is assumed and those points are marked as estimates. The day
+in progress is left out entirely, since annualising a part-day would read as a
+collapse in the rate.
+
+### Stale data
+
+If the daily update has not run for more than 36 hours, a banner says so and
+gives the age. The cron runs once a day, so anything past that means a run was
+missed.
+
 ## Things worth knowing
 
 - **RPC**: Alchemy is required, or another provider offering
